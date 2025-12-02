@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Death Gives</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Main heading -->
+        <h1 class="main-heading">Death can take away everything<br>but what can it give us?</h1>
+
+        <!-- Input section -->
+        <div class="input-section">
+            <p class="input-label">...what did death help you gain?</p>
+            <div class="input-container">
+                <input type="text" id="userInput" placeholder="Anonymous" />
+                <button id="submitBtn">Share</button>
+            </div>
+        </div>
+
+        <!-- Responses container with scattered cards -->
+        <div class="responses-container" id="responsesContainer">
+            <div class="empty-state" id="emptyState">Responses will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Modal for expanded view -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <p class="modal-text" id="modalText"></p>
+        </div>
+    </div>
+
+    <!-- Socket.io library (loaded from server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Your script -->
+    <script src="app.js"></script>
+</body>
+</html>
