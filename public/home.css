@@ -74,12 +74,15 @@ body {
 .section {
     text-indent: 0;
 }
+.section2
+{ font-style: oblique;}
 
 .section.last {
     text-align: center;
     font-size: 1.2rem;
     margin-top: 2em;
     color: #9b8b9b;
+    font-style: bold;
 }
 
 .enter-button {

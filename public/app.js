@@ -1,24 +1,25 @@
 // connect to socket.io server
-const socket = io();
+let socket = io();
 
 // get elements
-const userInput = document.getElementById('userInput');
-const submitBtn = document.getElementById('submitBtn');
-const bubblesContainer = document.getElementById('bubblesContainer');
-const counterNumber = document.getElementById('counterNumber');
-const affirmation = document.getElementById('affirmation');
-const whiteGlow = document.getElementById('whiteGlow');
+let userInput = document.getElementById('userInput');
+let submitBtn = document.getElementById('submitBtn');
+let bubblesContainer = document.getElementById('bubblesContainer');
+let counterNumber = document.getElementById('counterNumber');
+let affirmation = document.getElementById('affirmation');
+let whiteGlow = document.getElementById('whiteGlow');
 
 // store all responses
 let responses = [];
 let activeBubbles = 0;
+let bubbleObjects = []; //track bubble physics
 
 // audio context for synth sound
 let audioContext;
 let harpAudio;
 let ambientOscillators = [];
 
-// flower images for memory garden (pink and marigold variations)
+// flower images for memory garden 
 const flowerImages = [
     // delicate 5-petal pink flower
     'data:image/svg+xml,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Cg transform="translate(40,40)"%3E%3Cellipse cx="0" cy="-20" rx="8" ry="16" fill="%23ffc9e6" opacity="0.9"/%3E%3Cellipse cx="0" cy="-20" rx="8" ry="16" fill="%23ffc9e6" opacity="0.9" transform="rotate(72)"/%3E%3Cellipse cx="0" cy="-20" rx="8" ry="16" fill="%23ffc9e6" opacity="0.9" transform="rotate(144)"/%3E%3Cellipse cx="0" cy="-20" rx="8" ry="16" fill="%23ffc9e6" opacity="0.9" transform="rotate(216)"/%3E%3Cellipse cx="0" cy="-20" rx="8" ry="16" fill="%23ffc9e6" opacity="0.9" transform="rotate(288)"/%3E%3Ccircle cx="0" cy="0" r="6" fill="%23ffe4f2"/%3E%3C/g%3E%3C/svg%3E',
@@ -100,7 +101,7 @@ function playPopSound() {
     const gain3 = audioContext.createGain();
     const masterGain = audioContext.createGain();
     
-    // ethereal chord (major 7th for dreamy quality)
+    // ethereal chord 
     osc1.frequency.setValueAtTime(523.25, now); // C5
     osc2.frequency.setValueAtTime(659.25, now); // E5
     osc3.frequency.setValueAtTime(987.77, now); // B5
@@ -110,7 +111,7 @@ function playPopSound() {
     osc2.frequency.exponentialRampToValueAtTime(493.88, now + 1.2);
     osc3.frequency.exponentialRampToValueAtTime(739.99, now + 1.2);
     
-    // soft sine waves for ethereal quality
+    // soft sine waves and triangle for variation
     osc1.type = 'sine';
     osc2.type = 'sine';
     osc3.type = 'triangle'; // slight variation
@@ -156,6 +157,159 @@ function updateCounter() {
     counterNumber.textContent = responses.length;
 }
 
+// get avoid zones (heading and input section)
+function getAvoidZones() {
+    const zones = [];
+    
+    const heading = document.querySelector('.main-heading');
+    if (heading) {
+        const rect = heading.getBoundingClientRect();
+        zones.push({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            height: rect.height
+        });
+    }
+    
+    const inputSection = document.querySelector('.input-section');
+    if (inputSection) {
+        const rect = inputSection.getBoundingClientRect();
+        zones.push({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            height: rect.height
+        });
+    }
+    
+    return zones;
+}
+
+// check if bubble collides with avoid zones and bounce it
+function checkZoneCollision(bubbleObj, zones) {
+    for (let zone of zones) {
+        const bubbleLeft = bubbleObj.x - bubbleObj.radius;
+        const bubbleRight = bubbleObj.x + bubbleObj.radius;
+        const bubbleTop = bubbleObj.y - bubbleObj.radius;
+        const bubbleBottom = bubbleObj.y + bubbleObj.radius;
+        
+        const zoneRight = zone.x + zone.width;
+        const zoneBottom = zone.y + zone.height;
+        
+        // check rectangle overlap
+        if (bubbleRight > zone.x && bubbleLeft < zoneRight &&
+            bubbleBottom > zone.y && bubbleTop < zoneBottom) {
+            
+            // calculate which side to bounce from
+            const overlapLeft = bubbleRight - zone.x;
+            const overlapRight = zoneRight - bubbleLeft;
+            const overlapTop = bubbleBottom - zone.y;
+            const overlapBottom = zoneBottom - bubbleTop;
+            
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+            
+            // push bubble out and reverse velocity
+            if (minOverlap === overlapLeft) {
+                bubbleObj.x = zone.x - bubbleObj.radius - 1;
+                bubbleObj.vx = Math.abs(bubbleObj.vx) * -1; // bounce left
+            } else if (minOverlap === overlapRight) {
+                bubbleObj.x = zoneRight + bubbleObj.radius + 1;
+                bubbleObj.vx = Math.abs(bubbleObj.vx); // bounce right
+            } else if (minOverlap === overlapTop) {
+                bubbleObj.y = zone.y - bubbleObj.radius - 1;
+                bubbleObj.vy = Math.abs(bubbleObj.vy) * -1; // bounce up
+            } else {
+                bubbleObj.y = zoneBottom + bubbleObj.radius + 1;
+                bubbleObj.vy = Math.abs(bubbleObj.vy); // bounce down
+            }
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+// physics animation loop
+function updatePhysics() {
+    const avoidZones = getAvoidZones();
+    
+    bubbleObjects.forEach((bubbleA, i) => {
+        // remove if bubble no longer exists in dom
+        if (!bubbleA.element.parentElement) {
+            bubbleObjects.splice(i, 1);
+            return;
+        }
+        
+        // check collision with avoid zones (heading and input)
+        checkZoneCollision(bubbleA, avoidZones);
+        
+        // check collision with other bubbles
+        bubbleObjects.forEach((bubbleB, j) => {
+            if (i >= j) return; // skip self and duplicate checks
+            
+            const dx = bubbleB.x - bubbleA.x;
+            const dy = bubbleB.y - bubbleA.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = bubbleA.radius + bubbleB.radius;
+            
+            // if overlapping, push apart and bounce
+            if (distance < minDistance) {
+                const angle = Math.atan2(dy, dx);
+                const overlap = minDistance - distance;
+                
+                // separate bubbles
+                const separationX = Math.cos(angle) * overlap * 0.5;
+                const separationY = Math.sin(angle) * overlap * 0.5;
+                
+                bubbleA.x -= separationX;
+                bubbleA.y -= separationY;
+                bubbleB.x += separationX;
+                bubbleB.y += separationY;
+                
+                // simple velocity exchange (bounce effect)
+                const tempVx = bubbleA.vx;
+                const tempVy = bubbleA.vy;
+                bubbleA.vx = bubbleB.vx * 0.9; // damping
+                bubbleA.vy = bubbleB.vy * 0.9;
+                bubbleB.vx = tempVx * 0.9;
+                bubbleB.vy = tempVy * 0.9;
+            }
+        });
+        
+        // update position with velocity
+        bubbleA.x += bubbleA.vx;
+        bubbleA.y += bubbleA.vy;
+        
+        // bounce off walls
+        if (bubbleA.x < bubbleA.radius) {
+            bubbleA.x = bubbleA.radius;
+            bubbleA.vx *= -0.8;
+        }
+        if (bubbleA.x > window.innerWidth - bubbleA.radius) {
+            bubbleA.x = window.innerWidth - bubbleA.radius;
+            bubbleA.vx *= -0.8;
+        }
+        if (bubbleA.y < bubbleA.radius) {
+            bubbleA.y = bubbleA.radius;
+            bubbleA.vy *= -0.8;
+        }
+        if (bubbleA.y > window.innerHeight - bubbleA.radius) {
+            bubbleA.y = window.innerHeight - bubbleA.radius;
+            bubbleA.vy *= -0.8;
+        }
+        
+        // apply position to dom element
+        bubbleA.element.style.left = (bubbleA.x - bubbleA.radius) + 'px';
+        bubbleA.element.style.top = (bubbleA.y - bubbleA.radius) + 'px';
+    });
+    
+    requestAnimationFrame(updatePhysics);
+}
+
+// start physics loop
+updatePhysics();
+
 // socket.io event listeners
 socket.on('connect', () => {
     console.log('connected to server');
@@ -181,55 +335,99 @@ function createBubble(response) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     
-    // random starting position across the screen
-    const startX = Math.random() * (window.innerWidth - 120);
-    const startY = Math.random() * (window.innerHeight - 300) + 150; // avoid top input area
+    // get avoid zones
+    const avoidZones = getAvoidZones();
+    
+    // find safe starting position
+    let startX, startY, attempts = 0;
+    let isSafe = false;
+    
+    while (!isSafe && attempts < 100) {
+        startX = Math.random() * (window.innerWidth - 120);
+        startY = Math.random() * (window.innerHeight - 120);
+        
+        isSafe = true;
+        
+        // check against avoid zones
+        for (let zone of avoidZones) {
+            const bubbleRight = startX + 120;
+            const bubbleBottom = startY + 120;
+            const zoneRight = zone.x + zone.width;
+            const zoneBottom = zone.y + zone.height;
+            
+            if (startX < zoneRight && bubbleRight > zone.x &&
+                startY < zoneBottom && bubbleBottom > zone.y) {
+                isSafe = false;
+                break;
+            }
+        }
+        
+        attempts++;
+    }
+    
     bubble.style.left = startX + 'px';
     bubble.style.top = startY + 'px';
-    
-    // gentle floating animation (very slow)
-    const duration = 40 + Math.random() * 20; // 40-60 seconds
-    bubble.style.animationDuration = duration + 's';
+    bubble.style.animation = 'none'; // disable css animation, using js physics
     
     // click to pop
-    bubble.addEventListener('click', () => popBubble(bubble, response, startX, startY));
+    bubble.addEventListener('click', () => popBubble(bubble, response));
     
     bubblesContainer.appendChild(bubble);
+    
+    // create physics object with response stored
+    const bubbleObj = {
+        element: bubble,
+        x: startX + 60, // center x
+        y: startY + 60, // center y
+        vx: (Math.random() - 0.5) * 0.4, // small random horizontal drift
+        vy: (Math.random() - 0.5) * 0.4, // small random vertical drift
+        radius: 60,
+        response: response // store response in physics object
+    };
+    bubbleObjects.push(bubbleObj);
     
     activeBubbles++;
     updateAmbientSound();
 }
 
 // pop bubble and reveal text, then leave flower
-function popBubble(bubble, response, x, y) {
-    // init audio on first interaction
-    initAudio();
+function popBubble(bubble, response) {
     
     // play pop sound
     playPopSound();
     
-    // get bubble position
-    const rect = bubble.getBoundingClientRect();
+    // get bubble's CURRENT position from physics array (not DOM!)
+    const bubbleObj = bubbleObjects.find(b => b.element === bubble);
+    if (!bubbleObj) return;
+    
+    const centerX = bubbleObj.x;
+    const centerY = bubbleObj.y;
     
     // add popping animation
     bubble.classList.add('popping');
     
     // create particle burst effect
-    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    createParticles(centerX, centerY);
     
     // show text where bubble was
     setTimeout(() => {
         const revealedText = document.createElement('div');
         revealedText.className = 'revealed-text';
         revealedText.textContent = response.text;
-        revealedText.style.left = (rect.left + rect.width / 2) + 'px';
-        revealedText.style.top = (rect.top + rect.height / 2) + 'px';
-        revealedText.style.transform = 'translate(-50%, -50%)';
+        revealedText.style.left = centerX + 'px';
+        revealedText.style.top = centerY + 'px';
         
         bubblesContainer.appendChild(revealedText);
         
-        // remove bubble
+        // remove bubble from DOM
         bubble.remove();
+
+        // remove from physics array
+        const index = bubbleObjects.findIndex(b => b.element === bubble);
+        if (index !== -1) {
+            bubbleObjects.splice(index, 1);
+        }
+
         activeBubbles--;
         updateAmbientSound();
         
@@ -238,7 +436,7 @@ function popBubble(bubble, response, x, y) {
             revealedText.remove();
             
             // leave a flower in the memory garden
-            createFlowerMemory(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            createFlowerMemory(centerX, centerY);
         }, 4000);
     }, 200);
 }
@@ -249,7 +447,6 @@ function createFlowerMemory(x, y) {
     flower.className = 'flower-memory';
     flower.style.left = x + 'px';
     flower.style.top = y + 'px';
-    flower.style.transform = 'translate(-50%, -50%)';
     
     const img = document.createElement('img');
     // pick random flower from array
@@ -291,6 +488,7 @@ function renderBubbles() {
     // clear existing bubbles
     bubblesContainer.innerHTML = '';
     activeBubbles = 0;
+    bubbleObjects = [];
     
     // create bubbles for each response with staggered timing
     responses.forEach((response, index) => {
@@ -326,7 +524,7 @@ function submitResponse() {
         setTimeout(() => {
             whiteGlow.classList.remove('show');
             affirmation.classList.remove('show');
-        }, 1000); // 1 second
+        }, 5000); // 5 seconds
     }
 }
 
@@ -338,3 +536,32 @@ userInput.addEventListener('keypress', (e) => {
         submitResponse();
     }
 });
+
+// play harp sound on page load
+window.addEventListener('load', () => {
+    initAudio();
+});
+
+// inactivity timer - auto-pop after 10 seconds
+let inactivityTimer;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        if (bubbleObjects.length > 0) {
+            // pick random bubble
+            const randomBubble = bubbleObjects[Math.floor(Math.random() * bubbleObjects.length)];
+            if (randomBubble && randomBubble.element && randomBubble.response) {
+                popBubble(randomBubble.element, randomBubble.response);
+            }
+        }
+    }, 10000); // 10 seconds
+}
+
+// reset on any interaction
+document.addEventListener('click', resetInactivityTimer);
+document.addEventListener('mousemove', resetInactivityTimer);
+document.addEventListener('keypress', resetInactivityTimer);
+
+// start timer
+resetInactivityTimer();

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Digital Heaven</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single+Ink&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bitcount Prop Single Ink', monospace;
+            background: linear-gradient(180deg, 
+                #fce4ec 0%,
+                #ffe3f8 25%,
+                #f8f9ff 50%,
+                #ffd6f5 75%,
+                #e3f2fd 100%);
+            background-attachment: fixed;
+            color: #8b7b8b;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            color: #9b8b9b;
+            text-shadow: 0 2px 15px rgba(255, 255, 255, 0.6);
+        }
+
+        .stats {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            color: #b89aaf;
+        }
+
+        .response-item {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 230, 240, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 20px rgba(255, 200, 220, 0.15);
+        }
+
+        .response-content {
+            flex: 1;
+        }
+
+        .response-text {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #8b7b8b;
+            margin-bottom: 8px;
+        }
+
+        .response-meta {
+            font-size: 0.85rem;
+            color: #b89aaf;
+            opacity: 0.7;
+        }
+
+        .delete-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #f5d5e5 0%, #e8c4d8 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Bitcount Prop Single Ink', monospace;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(255, 200, 220, 0.2);
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 200, 220, 0.4);
+            background: linear-gradient(135deg, #f0c5d5 0%, #e0b4c8 100%);
+        }
+
+        .delete-btn:active {
+            transform: translateY(0);
+        }
+
+        .no-responses {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #b89aaf;
+            margin-top: 60px;
+            opacity: 0.7;
+        }
+
+        .back-link {
+            display: inline-block;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #b89aaf;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #9b8b9b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/digitalheaven" class="back-link">← back to digital heaven</a>
+        <h1>admin panel</h1>
+        <div class="stats">
+            <span id="totalCount">0</span> responses
+        </div>
+        
+        <div id="responsesList"></div>
+        <div id="noResponses" class="no-responses" style="display: none;">
+            no responses yet
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = io();
+        let responses = [];
+
+        // format timestamp
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        // render all responses
+        function renderResponses() {
+            const list = document.getElementById('responsesList');
+            const noResponses = document.getElementById('noResponses');
+            const totalCount = document.getElementById('totalCount');
+            
+            totalCount.textContent = responses.length;
+            
+            if (responses.length === 0) {
+                list.innerHTML = '';
+                noResponses.style.display = 'block';
+                return;
+            }
+            
+            noResponses.style.display = 'none';
+            
+            list.innerHTML = responses.map(response => `
+                <div class="response-item" data-id="${response._id}">
+                    <div class="response-content">
+                        <div class="response-text">${response.text}</div>
+                        <div class="response-meta">${formatDate(response.timestamp)}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteResponse('${response._id}')">delete</button>
+                </div>
+            `).join('');
+        }
+
+        // delete a response
+        function deleteResponse(id) {
+            if (confirm('are you sure you want to delete this response?')) {
+                socket.emit('deleteResponse', { id: id });
+            }
+        }
+
+        // socket events
+        socket.on('connect', () => {
+            console.log('connected to server');
+            socket.emit('getResponses');
+        });
+
+        socket.on('allResponses', (allResponses) => {
+            responses = allResponses;
+            renderResponses();
+        });
+
+        socket.on('newResponse', (response) => {
+            responses.unshift(response);
+            renderResponses();
+        });
+
+        socket.on('responseDeleted', (data) => {
+            responses = responses.filter(r => r._id !== data.id);
+            renderResponses();
+        });
+    </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ const io = socketIo(server);
 
 // Middleware - serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json()); // parse json bodies
 
 // Routes for clean URLs
 app.get('/', (req, res) => {
@@ -25,6 +26,10 @@ app.get('/home', (req, res) => {
 
 app.get('/digitalheaven', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'heaven.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // MongoDB Connection
@@ -84,6 +89,20 @@ io.on('connection', (socket) => {
             console.log('New response saved to database:', data.text);
         } catch (error) {
             console.error('Error saving response:', error);
+        }
+    });
+
+    // When admin deletes a response
+    socket.on('deleteResponse', async (data) => {
+        try {
+            await Response.findByIdAndDelete(data.id);
+            
+            // broadcast deletion to all connected clients
+            io.emit('responseDeleted', { id: data.id });
+            
+            console.log('Response deleted:', data.id);
+        } catch (error) {
+            console.error('Error deleting response:', error);
         }
     });
 
