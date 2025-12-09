@@ -1,0 +1,129 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Bitcount Prop Single Ink', monospace;
+    background: linear-gradient(180deg, 
+        #fce4ec 0%,
+        #fff5e6 25%,
+        #f8f9ff 50%,
+        #ffe8d6 75%,
+        #e3f2fd 100%);
+    background-attachment: fixed;
+    color: #8b7b8b;
+    min-height: 100vh;
+    overflow: auto;
+    position: relative;
+}
+
+.home-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content {
+    text-align: center;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 300;
+    margin-bottom: 60px;
+    color: #9b8b9b;
+    letter-spacing: 1px;
+    line-height: 1.3;
+    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.5);
+}
+
+.story {
+    text-align: left;
+    line-height: 1.9;
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: #8b7b8b;
+    margin-bottom: 60px;
+}
+
+.story p {
+    margin-bottom: 1.5em;
+}
+
+.story p:first-child {
+    font-style: italic;
+    color: #9b8b9b;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    padding: 20px 0;
+}
+
+.attribution {
+    text-align: right;
+    font-size: 1rem;
+    color: #a89aaf;
+    margin-bottom: 2.5em !important;
+}
+
+.section {
+    text-indent: 0;
+}
+
+.section.last {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 2em;
+    color: #9b8b9b;
+}
+
+.enter-button {
+    display: inline-block;
+    padding: 16px 60px;
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, rgba(255, 240, 250, 0.6) 0%, rgba(255, 235, 245, 0.6) 100%);
+    backdrop-filter: blur(10px);
+    color: #b89aaf;
+    border: 2px solid rgba(255, 200, 220, 0.3);
+    border-radius: 30px;
+    text-decoration: none;
+    font-family: 'Bitcount Prop Single Ink', monospace;
+    font-weight: 400;
+    letter-spacing: 2px;
+    transition: all 0.4s ease;
+    box-shadow: 0 4px 20px rgba(255, 180, 210, 0.2);
+    text-shadow: 0 1px 10px rgba(255, 255, 255, 0.5);
+}
+
+.enter-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 30px rgba(255, 180, 210, 0.35);
+    background: linear-gradient(135deg, rgba(255, 240, 250, 0.8) 0%, rgba(255, 235, 245, 0.8) 100%);
+    border-color: rgba(255, 200, 220, 0.5);
+}
+
+/* responsive */
+@media (max-width: 768px) {
+    .home-container {
+        padding: 60px 30px;
+    }
+
+    .title {
+        font-size: 2.2rem;
+        margin-bottom: 40px;
+    }
+
+    .story {
+        font-size: 1.05rem;
+    }
+
+    .enter-button {
+        padding: 14px 50px;
+        font-size: 1.1rem;
+    }
+}

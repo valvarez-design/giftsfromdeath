@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Heaven</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single+Ink&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-heading">In some cultures, death is not an ending.<br><br>The dead don't leave—<br>they follow, they guide, they stay beside us.<br><br>Have you felt them?</h1>
+
+        <div class="input-section">
+            <div class="input-container">
+                <input type="text" id="userInput" placeholder="I felt them when..." />
+                <button id="submitBtn">release</button>
+            </div>
+        </div>
+
+        <!-- counter showing collective presence -->
+        <div class="counter" id="counter">You're not alone - <span id="counterNumber">0</span> others have released here</div>
+
+        <!-- affirmation message (hidden by default) -->
+        <div class="affirmation" id="affirmation">Grief doesn't end. Love doesn't either.</div>
+
+        <!-- white glow overlay for affirmation -->
+        <div class="white-glow" id="whiteGlow"></div>
+
+        <!-- bubbles and flowers container -->
+        <div class="bubbles-container" id="bubblesContainer"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

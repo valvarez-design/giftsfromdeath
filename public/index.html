@@ -3,40 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>What Death Gives</title>
-    <link rel="stylesheet" href="style.css">
+    <title>What Death Gives Us</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single+Ink&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Main heading -->
-        <h1 class="main-heading">Death can take away everything<br>but what can it give us?</h1>
-
-        <!-- Input section -->
-        <div class="input-section">
-            <p class="input-label">...what did death help you gain?</p>
-            <div class="input-container">
-                <input type="text" id="userInput" placeholder="Anonymous" />
-                <button id="submitBtn">Share</button>
+    <div class="home-container">
+        <div class="content">
+            <h1 class="title">What Death Gives Us</h1>
+            
+            <div class="story">
+                <p>"The word 'death' is not pronounced in New York, in Paris, in London, because it burns the lips. The Mexican, in contrast, is familiar with death, jokes about it, caresses it, sleeps with it, celebrates it; it is one of his favorite toys and his most steadfast love."</p>
+                <p class="attribution">— Octavio Paz</p>
+                
+                <p class="section">Growing up, I believed the dead followed me. Not as ghosts to fear, but as companions—invisible guardians walking beside me through life. This wasn't superstition. It was culture.</p>
+                
+                <p class="section">In Mexican tradition, death is not an ending. The dead don't leave us. They linger in the smell of marigolds, in dreams, in moments when grief softens into something that feels like presence.</p>
+                
+                <p class="section">Western grief culture tells us to "move on," to "let go," to complete our "stages" and arrive at "closure." It pathologizes ongoing bonds with the dead as unhealthy attachment. It medicalizes what other cultures know as sacred.</p>
+                
+                <p class="section">But what if grief doesn't end because love doesn't end?</p>
+                
+                <p class="section">What if the dead walk beside us, and we're not crazy for feeling them there?</p>
+                
+                <p class="section">This project is a space for those moments—the ones we're told don't exist. The dream where they spoke. The song that came on at the exact right time. The feeling of a hand on your shoulder when the room was empty.</p>
+                
+                <p class="section last">Enter to share what the Western world tells you to forget.</p>
             </div>
-        </div>
-
-        <!-- Responses container with scattered cards -->
-        <div class="responses-container" id="responsesContainer">
-            <div class="empty-state" id="emptyState">Responses will appear here...</div>
+            
+            <a href="/digitalheaven" class="enter-button">enter</a>
         </div>
     </div>
-
-    <!-- Modal for expanded view -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <button class="close-modal" id="closeModal">&times;</button>
-            <p class="modal-text" id="modalText"></p>
-        </div>
-    </div>
-
-    <!-- Socket.io library (loaded from server) -->
-    <script src="/socket.io/socket.io.js"></script>
-    <!-- Your script -->
-    <script src="app.js"></script>
 </body>
 </html>

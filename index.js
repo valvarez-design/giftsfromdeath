@@ -14,6 +14,19 @@ const io = socketIo(server);
 // Middleware - serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Routes for clean URLs
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/home', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/digitalheaven', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'heaven.html'));
+});
+
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/death-reflections';
 
