@@ -414,10 +414,42 @@ function popBubble(bubble, response) {
         const revealedText = document.createElement('div');
         revealedText.className = 'revealed-text';
         revealedText.textContent = response.text;
-        revealedText.style.left = centerX + 'px';
-        revealedText.style.top = centerY + 'px';
         
+        // temporarily add to DOM to measure size
+        revealedText.style.visibility = 'hidden';
         bubblesContainer.appendChild(revealedText);
+        
+        // get text box dimensions
+        const textRect = revealedText.getBoundingClientRect();
+        const textWidth = textRect.width;
+        const textHeight = textRect.height;
+        
+        // calculate position with boundaries
+        // text is centered on bubble, so we need half-width/height offsets
+        let finalX = centerX;
+        let finalY = centerY;
+        
+        // check left boundary
+        if (finalX - textWidth / 2 < 20) {
+            finalX = textWidth / 2 + 20;
+        }
+        // check right boundary
+        if (finalX + textWidth / 2 > window.innerWidth - 20) {
+            finalX = window.innerWidth - textWidth / 2 - 20;
+        }
+        // check top boundary
+        if (finalY - textHeight / 2 < 20) {
+            finalY = textHeight / 2 + 20;
+        }
+        // check bottom boundary
+        if (finalY + textHeight / 2 > window.innerHeight - 20) {
+            finalY = window.innerHeight - textHeight / 2 - 20;
+        }
+        
+        // apply final position
+        revealedText.style.left = finalX + 'px';
+        revealedText.style.top = finalY + 'px';
+        revealedText.style.visibility = 'visible';
         
         // remove bubble from DOM
         bubble.remove();
